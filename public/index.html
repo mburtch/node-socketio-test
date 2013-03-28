@@ -1,0 +1,151 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Desktop Page</title>
+ 	<link rel="stylesheet" href="/css/bootstrap.min.css">
+	<link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
+	<style type="text/css">
+	.container.head .span12 {
+		position: relative;		
+		height: 260px;
+		-webkit-transform-style: preserve-3d;	
+	}
+	.container.head .span12 .phone {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 128px;
+		height: 240px;
+		-webkit-transform: rotateX(30deg) rotateY(0);
+	}
+	.container.head .span12 .phone img {
+		margin-left: -64px;
+		margin-top: -120px;
+	}
+	</style>
+</head>
+<body>
+	
+	<div class="container">
+		<div class="row">
+			<div class="span12">
+				<h1>Acceleration</h1>
+				<p class="lead">Turn your phone upside-down and swing.</p>
+			</div>
+		</div>
+	</div>
+	<div class="container head">
+		<div class="row">
+			<div class="span12">
+				<div class="phone">
+					<img src="/img/iphone.png">
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="container">
+		<div class="row">
+			<div class="span12">
+				<table class="table table-condensed">
+					<thead>
+						<tr>
+							<th>Acceleration <small>(m/s<sup>2</sup>)</small></th>
+							<th>Direction <small>(º)</small></th>
+							<th>Timestamp <small>(msec)</small></th>
+						</tr>
+					</thead>
+					<tbody>
+						
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script>window.jQuery || document.write('<script src="/js/jquery-1.9.1.min.js"><\/script>')</script>
+	<script type="text/javascript" src="/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+	function randomString () {
+		var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+		var string_length = 8;
+		var randomstring = '';
+		for (var i=0; i<string_length; i++) {
+			var rnum = Math.floor(Math.random() * chars.length);
+			randomstring += chars.substring(rnum,rnum+1);
+		}
+		return randomstring;
+	}
+
+	var roomId = randomString();
+		roomId = "test"
+	var socket = io.connect('http://mburtch.local:8080/?mobile.html?id='+roomId);
+	var roomURL = 'http://mburtch.local:8080/?mobile.html?id='+roomId;
+
+	socket.emit('NEW_ROOM', { room: roomId });
+	
+	socket.on('ADD_USER', function (socketID, data){
+		console.log('socket.ADD_USER', arguments);
+		players.push(new player(socketID));
+	});
+
+	socket.on('REMOVE_USER', function(socketID){
+		console.log('socket.REMOVE_USER', arguments);
+		var destroyThis = null;
+		for (var i in players) {
+			if (players[i].id == socketID) {
+				destroyThis = i;
+			}
+		}
+		if (destroyThis !== null) {
+			players.splice(destroyThis, 1);
+		}
+	});
+	
+	socket.on('UPDATE_ORIENTATION', function (socketId, data) {
+		console.log('socket.UPDATE_ORIENTATION', arguments);
+		
+		$('.phone').css({
+			'-webkit-transform': 'rotateX('+data.orientation.y+'deg) rotateY('+data.orientation.x+'deg)'
+		});
+		
+		return;
+	});
+	
+	socket.on('UPDATE_ACCELERATION', function (socketId, data) {
+		console.log('socket.UPDATE_ACCELERATION', arguments);
+		
+		displayRecording(data.samples);
+		return;
+		
+    	var player = null;
+		for (var i in players) {
+			if (players[i].id == socketId){
+				player = players[i];
+			}
+		}
+
+    	if (player !== null) {
+			// do something!
+		}
+	});
+	
+	function displayRecording ($samples) {
+		$('tbody').empty();
+		console.log( $samples );
+		
+		$.each($samples, function (i, s) {
+			console.log( s );
+			var tr = $('<tr/>').appendTo( $('tbody') );
+			tr.append( $('<td/>').html(s.amt) );
+			tr.append( $('<td/>').html(s.angle) );
+			tr.append( $('<td/>').html(s.time) );
+		});
+	}
+
+	</script>
+	
+</body>
+</html>
