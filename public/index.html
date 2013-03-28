@@ -81,8 +81,8 @@
 
 	var roomId = randomString();
 		roomId = "test"
-	var socket = io.connect('http://mburtch.local:8080/?mobile.html?id='+roomId);
-	var roomURL = 'http://mburtch.local:8080/?mobile.html?id='+roomId;
+	var socket = io.connect('http://'+location.hostname+':5000/?mobile.html?id='+roomId);
+	var roomURL = 'http://'+location.hostname+':5000/?mobile.html?id='+roomId;
 
 	socket.emit('NEW_ROOM', { room: roomId });
 	
